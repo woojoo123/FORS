@@ -1,1 +1,40 @@
 .vscode
+.idea
+*.iml
+.DS_Store
+*.log
+
+# Gradle
+.gradle
+**/build/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE/Tools
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+out/
+*.iws
+*.ipr
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Spring
+**/application*.yml
+**/application*.yaml
+**/application*.properties
