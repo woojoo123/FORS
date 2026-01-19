@@ -1,6 +1,7 @@
 package com.woojoo.forsbackend.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -101,8 +102,13 @@ public class OrderService {
         }
 
         if ("SUCCEED".equalsIgnoreCase(result)) {
-            order.setStatus("PAID");
-            payment.setStatus("SUCCEEDED");
+            int changed = orderRepository.paidIfPending(orderId);
+
+            if (changed == 1) {
+                payment.setStatus("SUCCEEDED");
+                return new PayResponse(orderId, "PAID", payment.getStatus());
+            }
+            // 이미 PAID거나 CANCELED/EXPIRED 상태였으면 그대로 반환
             return new PayResponse(orderId, order.getStatus(), payment.getStatus());
         }
 
@@ -131,6 +137,17 @@ public class OrderService {
                 dropStockRepository.increase(order.getDropEventId(), order.getSkuId());
             }
         }
+    }
+
+    // 내 주문 목록
+    public List<OrderEntity> getMyOrders(Long userId) {
+        return orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    // 내 주문 상세
+    public OrderEntity getMyOrder(Long userId, Long orderId) {
+        return orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND"));
     }
 
     private CreateOrderResponse toCreateOrderResponse(OrderEntity order) {

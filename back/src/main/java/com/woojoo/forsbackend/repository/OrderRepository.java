@@ -32,6 +32,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
             """)
     int cancelIfPending(@Param("orderId") Long orderId);
 
+
     @Query("""
             SELECT o FROM OrderEntity o
             WHERE o.status = 'PAYMENT_PENDING'
@@ -42,10 +43,27 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     @Modifying
     @Transactional
     @Query("""
-    UPDATE OrderEntity o
-    SET o.status = 'EXPIRED'
-    WHERE o.id = :orderId
-        AND o.status = 'PAYMENT_PENDING'
+        UPDATE OrderEntity o
+        SET o.status = 'EXPIRED'
+        WHERE o.id = :orderId
+            AND o.status = 'PAYMENT_PENDING'
     """)
     int expireIfPending(@Param("orderId") Long orderId);
+
+
+    // 주문 상태가 PAYMENT_PENDING일 때만 PAID로 변경
+    @Modifying
+    @Transactional
+    @Query("""
+            UPDATE OrderEntity o
+            SET o.status = 'PAID'
+            WHERE o.id = :orderId
+            AND o.status = 'PAYMENT_PENDING'
+        """)
+    int paidIfPending(@Param("orderId") Long orderId);
+
+    // 내 주문목록을 최신순으로 가져옴
+    List<OrderEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
+    // 내 주문 상세를 나만 알 수 있게 함
+    Optional<OrderEntity> findByIdAndUserId(Long id, Long userId);
 }
