@@ -12,14 +12,18 @@ import org.springframework.web.server.ResponseStatusException;
 import com.woojoo.forsbackend.dto.CreateOrderRequest;
 import com.woojoo.forsbackend.dto.CreateOrderResponse;
 import com.woojoo.forsbackend.dto.PayResponse;
+import com.woojoo.forsbackend.entity.DropEventEntity;
 import com.woojoo.forsbackend.entity.OrderEntity;
 import com.woojoo.forsbackend.entity.PaymentEntity;
+import com.woojoo.forsbackend.repository.DropEventRepository;
 import com.woojoo.forsbackend.repository.DropStockRepository;
 import com.woojoo.forsbackend.repository.OrderRepository;
 import com.woojoo.forsbackend.repository.PaymentRepository;
 
 @Service
 public class OrderService {
+
+    private final DropEventRepository dropEventRepository;
 
     private final OrderRepository orderRepository;
     private final DropStockRepository dropStockRepository;
@@ -29,8 +33,9 @@ public class OrderService {
     public OrderService(OrderRepository orderRepository,
                         DropStockRepository dropStockRepository,
                         PaymentRepository paymentRepository,
-                        IdempotencyLookupService idempotencyLookupService) {
+                        IdempotencyLookupService idempotencyLookupService, DropEventRepository dropEventRepository) {
         this.orderRepository = orderRepository;
+        this.dropEventRepository = dropEventRepository;
         this.dropStockRepository = dropStockRepository;
         this.paymentRepository = paymentRepository;
         this.idempotencyLookupService = idempotencyLookupService;
@@ -44,6 +49,17 @@ public class OrderService {
         var existing = orderRepository.findByIdempotencyKey(idempotencyKey);
         if (existing.isPresent()) {
             return toCreateOrderResponse(existing.get());
+        }
+
+                DropEventEntity dropEvent = dropEventRepository.findById(req.dropEventId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "DROP_NOT_LIVE"));
+        LocalDateTime now = LocalDateTime.now();
+        if (!"LIVE".equals(dropEvent.getStatus())
+                || dropEvent.getStartsAt() == null
+                || dropEvent.getEndsAt() == null
+                || now.isBefore(dropEvent.getStartsAt())
+                || now.isAfter(dropEvent.getEndsAt())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "DROP_NOT_LIVE");
         }
 
         int updated = dropStockRepository.decreaseIfAvailable(req.dropEventId(), req.skuId());
@@ -62,7 +78,7 @@ public class OrderService {
             }
             throw new ResponseStatusException(HttpStatus.CONFLICT, "ALREADY_PURCHASED", e);
         }
-
+        
         PaymentEntity payment = newPaymentEntity(saved, req);
         paymentRepository.save(payment);
 

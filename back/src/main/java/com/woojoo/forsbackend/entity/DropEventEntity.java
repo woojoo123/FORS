@@ -28,5 +28,5 @@ public class DropEventEntity {
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
-    private LocalDateTime updateAt;
+    private LocalDateTime updatedAt;
 }
