@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -125,6 +126,21 @@ public class OrderService {
         throw new IllegalArgumentException("INVALID_RESULT");
     }
 
+    // 배송 처리 (PAID -> SHIPPING만 허용)
+    @Transactional
+    public OrderEntity shipOrder(Long orderId) {
+        OrderEntity order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND"));
+
+        int changed = orderRepository.shipIfPaid((orderId));
+        if (changed == 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "ORDER_NOT_PAID");
+        }
+
+        order.setStatus("SHIPPING");
+        return order;
+    }
+
     @Scheduled(fixedDelay = 60000)  // 1분마다
     @Transactional
     public void expirePendingOrders() {
@@ -148,6 +164,14 @@ public class OrderService {
     public OrderEntity getMyOrder(Long userId, Long orderId) {
         return orderRepository.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND"));
+    }
+
+    // 관리자 주문 조회
+    public List<OrderEntity> getOrdersByStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return orderRepository.findAllByOrderByCreatedAtDesc();
+        }
+        return orderRepository.findByStatusOrderByCreatedAtDesc(status);
     }
 
     private CreateOrderResponse toCreateOrderResponse(OrderEntity order) {

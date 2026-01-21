@@ -62,8 +62,24 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
         """)
     int paidIfPending(@Param("orderId") Long orderId);
 
+    // PAID일 때만 SHIPPING으로 전이
+    @Modifying
+    @Transactional
+    @Query("""
+            UPDATE OrderEntity o
+            SET o.status = 'SHIPPING'
+            WHERE o.id = :orderId
+                AND o.status = 'PAID'
+        """)
+    int shipIfPaid(@Param("orderId") Long orderId);
+
     // 내 주문목록을 최신순으로 가져옴
     List<OrderEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
     // 내 주문 상세를 나만 알 수 있게 함
     Optional<OrderEntity> findByIdAndUserId(Long id, Long userId);
+    // 관리자 주문 조회 (전체)
+    List<OrderEntity> findAllByOrderByCreatedAtDesc();
+    // 관리자 주문 조회 (상태별)
+    List<OrderEntity> findByStatusOrderByCreatedAtDesc(String status);
+
 }
