@@ -1,0 +1,5 @@
+{
+  "name": "FORS - Sneaker Drop MVP",
+  "description": "A minimal, SaaS-style commerce UI for limited sneaker releases, featuring live drops, order tracking, and administrative fulfillment controls.",
+  "requestFramePermissions": []
+}

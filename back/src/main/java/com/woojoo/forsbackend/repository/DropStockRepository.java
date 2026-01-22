@@ -1,5 +1,7 @@
 package com.woojoo.forsbackend.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -32,4 +34,9 @@ public interface DropStockRepository extends JpaRepository<DropStockEntity, Long
     """)
     int increase(@Param("dropEventId") Long dropEventId,
                  @Param("skuId") Long skuId);
+                 
+    @Query("SELECT COALESCE(SUM(s.remainingQty), 0) FROM DropStockEntity s WHERE s.dropEvent.id = :dropEventId")
+    Integer sumRemainingQty(@Param("dropEventId") Long dropEventId);
+
+    List<DropStockEntity> findByDropEventId(Long dropEventId);
 }

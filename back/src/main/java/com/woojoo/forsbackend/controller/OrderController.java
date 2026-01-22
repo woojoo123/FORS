@@ -3,6 +3,7 @@ package com.woojoo.forsbackend.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,14 +17,20 @@ import com.woojoo.forsbackend.dto.CreateOrderResponse;
 import com.woojoo.forsbackend.dto.PayRequest;
 import com.woojoo.forsbackend.dto.PayResponse;
 import com.woojoo.forsbackend.entity.OrderEntity;
+import com.woojoo.forsbackend.repository.UserRepository;
 import com.woojoo.forsbackend.service.OrderService;
 
 @RestController
 @RequestMapping("/api")
 public class OrderController {
 
+    private final UserRepository userRepository;
+
     private final OrderService orderService;
-    public OrderController(OrderService orderService) { this.orderService = orderService; }
+    public OrderController(OrderService orderService, UserRepository userRepository) { 
+        this.orderService = orderService; 
+        this.userRepository = userRepository;
+    }
 
     @PostMapping("/orders")
     public ResponseEntity<CreateOrderResponse> create(
@@ -42,17 +49,23 @@ public class OrderController {
     }
 
     @GetMapping("/orders/me")
-    public ResponseEntity<List<OrderEntity>> myOrders(
-        @RequestHeader("X-User-Id") Long userId
-    ) {
+    public ResponseEntity<List<OrderEntity>> myOrders(Authentication authentication) {
+        String email = authentication.getName();
+        Long userId = userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalStateException("USER_NOT_FOUND"))
+            .getId();
         return ResponseEntity.ok(orderService.getMyOrders(userId));
     }
 
     @GetMapping("/orders/{orderId}")
     public ResponseEntity<OrderEntity> myOrder(
-        @RequestHeader("X-User-Id") Long userId,
+        Authentication authentication,
         @PathVariable Long orderId
     ) {
-        return ResponseEntity.ok(orderService.getMyOrder(userId, orderId));
+        String email = authentication.getName();
+    Long userId = userRepository.findByEmail(email)
+        .orElseThrow(() -> new IllegalStateException("USER_NOT_FOUND"))
+        .getId();
+    return ResponseEntity.ok(orderService.getMyOrder(userId, orderId));
     }
 }

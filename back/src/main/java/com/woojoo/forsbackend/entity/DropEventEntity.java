@@ -15,6 +15,10 @@ public class DropEventEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    private DropProductEntity product;
+
     @Column(name = "status", nullable = false, length = 30)
     private String status;  // LIVE, DRAFT, CLOSED
 
