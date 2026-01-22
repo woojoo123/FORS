@@ -20,6 +20,11 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   [OrderStatus.DELIVERED]: '배송 완료',
 };
 
+export const formatKRW = (amount?: number | null) => {
+  if (amount == null) return '—';
+  return `${new Intl.NumberFormat('ko-KR').format(amount)}원`;
+};
+
 export const FALLBACK_DROP_IMAGE = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
     <rect width="800" height="800" fill="#f3f4f6"/>

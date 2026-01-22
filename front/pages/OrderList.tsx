@@ -4,7 +4,7 @@ import { useApp } from '../App';
 import { Drop, Order, OrderStatus } from '../types';
 import Badge from '../components/Badge';
 import { api } from '../api';
-import { FALLBACK_DROP_IMAGE, ORDER_STATUS_LABELS } from '../constants';
+import { FALLBACK_DROP_IMAGE, ORDER_STATUS_LABELS, formatKRW } from '../constants';
 
 const OrderList: React.FC = () => {
   const { addToast } = useApp();
@@ -124,7 +124,7 @@ const OrderList: React.FC = () => {
                     {order.sizeLabel}
                   </td>
                   <td className="px-6 py-5 text-sm font-bold text-gray-900">
-                    {order.amount ? `$${order.amount}` : '—'}
+                    {formatKRW(order.amount)}
                   </td>
                   <td className="px-6 py-5">
                     <Badge status={order.status} />

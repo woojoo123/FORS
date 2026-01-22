@@ -4,7 +4,7 @@ import { useApp } from '../App';
 import { Drop, DropStatus } from '../types';
 import Badge from '../components/Badge';
 import { api } from '../api';
-import { DROP_STATUS_LABELS, FALLBACK_DROP_IMAGE } from '../constants';
+import { DROP_STATUS_LABELS, FALLBACK_DROP_IMAGE, formatKRW } from '../constants';
 
 const DropList: React.FC = () => {
   const { addToast } = useApp();
@@ -68,7 +68,7 @@ const DropList: React.FC = () => {
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{drop.brand}</p>
                   <h3 className="font-bold text-lg text-gray-900 leading-tight">{drop.name}</h3>
                 </div>
-                  <p className="font-bold text-indigo-600">${drop.price}</p>
+                  <p className="font-bold text-indigo-600">{formatKRW(drop.price)}</p>
                 </div>
               
               <div className="mt-6 flex items-center justify-between">

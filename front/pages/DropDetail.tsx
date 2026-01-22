@@ -4,7 +4,7 @@ import { useApp } from '../App';
 import { Drop, DropStatus, OrderStatus, Order, Stock } from '../types';
 import Badge from '../components/Badge';
 import { api } from '../api';
-import { FALLBACK_DROP_IMAGE } from '../constants';
+import { FALLBACK_DROP_IMAGE, formatKRW } from '../constants';
 
 const DropDetail: React.FC<{ id: string }> = ({ id }) => {
   const { addToast, user } = useApp();
@@ -120,7 +120,7 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
         <div className="sticky top-32 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="p-8 border-b border-gray-100 flex justify-between items-center">
             <Badge status={drop.status} />
-            <p className="text-2xl font-bold text-gray-900">${drop.price}</p>
+            <p className="text-2xl font-bold text-gray-900">{formatKRW(drop.price)}</p>
           </div>
           
           <div className="p-8 space-y-6">

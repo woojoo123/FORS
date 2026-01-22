@@ -4,7 +4,7 @@ import { useApp } from '../App';
 import { OrderStatus, Order } from '../types';
 import Badge from '../components/Badge';
 import { api } from '../api';
-import { ORDER_STATUS_LABELS } from '../constants';
+import { ORDER_STATUS_LABELS, formatKRW } from '../constants';
 
 const AdminOrders: React.FC = () => {
   const { addToast } = useApp();
@@ -117,7 +117,7 @@ const AdminOrders: React.FC = () => {
                   </td>
                   <td className="px-6 py-5">
                     <p className="text-gray-600">SKU {order.skuId}</p>
-                    <p className="font-bold text-gray-900">{order.amount ? `$${order.amount}` : '—'}</p>
+                    <p className="font-bold text-gray-900">{formatKRW(order.amount)}</p>
                   </td>
                   <td className="px-6 py-5"><Badge status={order.status} /></td>
                   <td className="px-6 py-5">

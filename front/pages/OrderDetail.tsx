@@ -4,7 +4,7 @@ import { useApp } from '../App';
 import { Drop, Order, OrderStatus } from '../types';
 import Badge from '../components/Badge';
 import { api } from '../api';
-import { FALLBACK_DROP_IMAGE } from '../constants';
+import { FALLBACK_DROP_IMAGE, formatKRW } from '../constants';
 
 const OrderDetail: React.FC<{ id: string }> = ({ id }) => {
   const { addToast } = useApp();
@@ -107,21 +107,21 @@ const OrderDetail: React.FC<{ id: string }> = ({ id }) => {
             <div>
               <p className="text-lg font-bold text-gray-900">{order.dropName}</p>
               <p className="text-gray-500 font-medium">사이즈: {order.sizeLabel}</p>
-              <p className="text-gray-500 font-medium">가격: {order.amount ? `$${order.amount}` : '—'}</p>
+              <p className="text-gray-500 font-medium">가격: {formatKRW(order.amount)}</p>
             </div>
           </div>
           <div className="pt-6 border-t border-gray-100 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">상품 금액</span>
-              <span className="font-bold text-gray-900">{order.amount ? `$${order.amount}.00` : '—'}</span>
+              <span className="font-bold text-gray-900">{formatKRW(order.amount)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">배송비</span>
-              <span className="font-bold text-gray-900">$0.00</span>
+              <span className="font-bold text-gray-900">{formatKRW(0)}</span>
             </div>
             <div className="flex justify-between text-lg pt-2">
               <span className="font-bold text-gray-900">총 결제금액</span>
-              <span className="font-black text-gray-900">{order.amount ? `$${order.amount}.00` : '—'}</span>
+              <span className="font-black text-gray-900">{formatKRW(order.amount)}</span>
             </div>
           </div>
         </div>

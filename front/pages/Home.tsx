@@ -3,7 +3,7 @@ import { useApp } from '../App';
 import { Drop } from '../types';
 import Badge from '../components/Badge';
 import { api } from '../api';
-import { FALLBACK_DROP_IMAGE } from '../constants';
+import { FALLBACK_DROP_IMAGE, formatKRW } from '../constants';
 
 const Home: React.FC = () => {
   const { addToast } = useApp();
@@ -114,7 +114,7 @@ const Home: React.FC = () => {
                   <Badge status={drop.status} />
                 </div>
                 <div className="mt-4 flex items-center justify-between">
-                  <div className="text-sm font-semibold text-gray-900">${drop.price}</div>
+                  <div className="text-sm font-semibold text-gray-900">{formatKRW(drop.price)}</div>
                   <a
                     href={`#/drops/${drop.id}`}
                     className="text-xs font-semibold bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors"
