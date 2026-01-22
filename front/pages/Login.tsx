@@ -20,8 +20,9 @@ const Login: React.FC = () => {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
-      login(email, UserRole.USER);
-      addToast(`Welcome back, ${email}`, 'success');
+      const me = await api<{ id: number; email: string; role: UserRole }>('/api/auth/me');
+      login(me.email, me.role);
+      addToast(`Welcome back, ${me.email}`, 'success');
     } catch (err) {
       setError('Invalid credentials.');
       addToast('Login failed', 'error');
