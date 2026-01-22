@@ -32,15 +32,20 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [toasts, setToasts] = useState<{ id: number; message: string; type: 'success' | 'error' }[]>([]);
-  const [currentPath, setCurrentPath] = useState<string>(window.location.hash || '#/');
+  const [currentPath, setCurrentPath] = useState<string>(window.location.pathname || '/');
 
   useEffect(() => {
-    const handleHashChange = () => {
-      setCurrentPath(window.location.hash || '#/');
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname || '/');
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  const navigate = (path: string) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+  };
 
   useEffect(() => {
     api<{ id: number; email: string; role: UserRole }>('/api/auth/me')
@@ -57,13 +62,13 @@ const App: React.FC = () => {
 
   const login = (email: string, role: UserRole) => {
     setUser({ email, role });
-    window.location.hash = '#/drops';
+    navigate('/drops');
   };
 
   const logout = () => {
     api<void>('/api/auth/logout', { method: 'POST' }).catch(() => {});
     setUser(null);
-    window.location.hash = '#/login';
+    navigate('/login');
   };
 
   const addToast = (message: string, type: 'success' | 'error') => {
@@ -87,34 +92,34 @@ const App: React.FC = () => {
       );
     }
 
-    if (currentPath === '#/login') return <Login />;
-    if (currentPath === '#/signup') return <Signup />;
-    if (currentPath === '#/' || currentPath === '#/home') return <Home />;
+    if (currentPath === '/login') return <Login />;
+    if (currentPath === '/signup') return <Signup />;
+    if (currentPath === '/' || currentPath === '/home') return <Home />;
 
     // Auth Guard
     if (!user) {
-      if (currentPath === '#/drops' || currentPath.startsWith('#/drops/')) {
-        return currentPath.startsWith('#/drops/')
+      if (currentPath === '/drops' || currentPath.startsWith('/drops/')) {
+        return currentPath.startsWith('/drops/')
           ? (() => {
-              const id = currentPath.split('/')[2];
-              return <DropDetail id={id} />;
-            })()
+            const id = currentPath.split('/')[2];
+            return <DropDetail id={id} />;
+          })()
           : <DropList />;
       }
       return <Login />;
     }
 
-    if (currentPath.startsWith('#/drops/')) {
+    if (currentPath.startsWith('/drops/')) {
       const id = currentPath.split('/')[2];
       return <DropDetail id={id} />;
     }
-    if (currentPath === '#/drops') return <DropList />;
-    if (currentPath === '#/orders') return <OrderList />;
-    if (currentPath.startsWith('#/orders/')) {
+    if (currentPath === '/drops') return <DropList />;
+    if (currentPath === '/orders') return <OrderList />;
+    if (currentPath.startsWith('/orders/')) {
       const id = currentPath.split('/')[2];
       return <OrderDetail id={id} />;
     }
-    if (currentPath === '#/admin/orders' && user.role === UserRole.ADMIN) return <AdminOrders />;
+    if (currentPath === '/admin/orders' && user.role === UserRole.ADMIN) return <AdminOrders />;
     
     return <DropList />;
   };

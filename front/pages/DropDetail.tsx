@@ -32,7 +32,7 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
       return;
     }
     if (!user) {
-      window.location.hash = '#/login';
+      window.location.href = '/login';
       return;
     }
 
@@ -217,7 +217,7 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
                         결제 실패
                       </button>
                     </div>
-                    <a href="#/orders" className="block text-center text-sm font-medium text-gray-500 hover:text-black mt-4 underline">내 주문에서 보기</a>
+                    <a href="/orders" className="block text-center text-sm font-medium text-gray-500 hover:text-black mt-4 underline">내 주문에서 보기</a>
                   </div>
                 )}
 
@@ -230,7 +230,7 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
                     </div>
                     <p className="font-bold text-xl">결제가 완료되었습니다!</p>
                     <p className="text-gray-500 text-sm">상품이 확보되었습니다. 배송 시작 시 알려드릴게요.</p>
-                    <a href="#/orders" className="block bg-black text-white font-bold py-3 rounded-xl">주문내역 보기</a>
+                    <a href="/orders" className="block bg-black text-white font-bold py-3 rounded-xl">주문내역 보기</a>
                   </div>
                 )}
               </div>

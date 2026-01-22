@@ -91,7 +91,7 @@ const Home: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         {activeDrops.map(drop => (
           <div key={drop.id} className="group">
-            <a href={`#/drops/${drop.id}`} className="block cursor-pointer">
+            <a href={`/drops/${drop.id}`} className="block cursor-pointer">
               <div className="text-xs font-semibold text-red-500 mb-3">
                 {formatRemaining(tab === 'live' ? drop.endsAt : drop.startsAt)}
               </div>

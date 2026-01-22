@@ -50,7 +50,7 @@ const OrderDetail: React.FC<{ id: string }> = ({ id }) => {
     <div className="max-w-4xl mx-auto space-y-10">
       <div className="flex justify-between items-center">
         <div>
-          <a href="#/orders" className="text-sm font-bold text-indigo-600 hover:underline mb-2 block">← 주문내역</a>
+          <a href="/orders" className="text-sm font-bold text-indigo-600 hover:underline mb-2 block">← 주문내역</a>
           <h1 className="text-3xl font-black text-gray-900">주문 {order.id}</h1>
         </div>
         <Badge status={order.status} className="text-lg px-4 py-1.5" />

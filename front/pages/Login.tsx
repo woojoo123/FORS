@@ -80,7 +80,7 @@ const Login: React.FC = () => {
 
         <div className="mt-6 text-sm text-gray-500">
           아직 계정이 없으신가요?{' '}
-          <a href="#/signup" className="text-indigo-600 font-semibold hover:underline">
+          <a href="/signup" className="text-indigo-600 font-semibold hover:underline">
             회원가입
           </a>
         </div>

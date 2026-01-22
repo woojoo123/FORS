@@ -11,12 +11,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="min-h-screen flex flex-col">
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 py-4 px-6 sm:px-12 flex justify-between items-center">
         <div className="flex items-center gap-10">
-          <a href="#/" className="text-xl font-bold tracking-tight">FORS</a>
+          <a href="/" className="text-xl font-bold tracking-tight">FORS</a>
           <div className="hidden md:flex gap-6 text-sm font-medium text-gray-600">
-            <a href="#/drops" className="hover:text-black transition-colors">드랍</a>
-            <a href={user ? '#/orders' : '#/login'} className="hover:text-black transition-colors">마이페이지</a>
+            <a href="/drops" className="hover:text-black transition-colors">드랍</a>
+            <a href={user ? '/orders' : '/login'} className="hover:text-black transition-colors">마이페이지</a>
             {user?.role === UserRole.ADMIN && (
-              <a href="#/admin/orders" className="hover:text-black transition-colors font-semibold border-l pl-6 border-gray-200">관리자</a>
+              <a href="/admin/orders" className="hover:text-black transition-colors font-semibold border-l pl-6 border-gray-200">관리자</a>
             )}
           </div>
         </div>
@@ -33,7 +33,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </button>
             </>
           ) : (
-            <a href="#/login" className={`bg-black text-white px-5 py-2 rounded-lg transition-all hover:opacity-90`}>
+            <a href="/login" className={`bg-black text-white px-5 py-2 rounded-lg transition-all hover:opacity-90`}>
               로그인
             </a>
           )}

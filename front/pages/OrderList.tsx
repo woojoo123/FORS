@@ -134,7 +134,7 @@ const OrderList: React.FC = () => {
                   </td>
                   <td className="px-6 py-5">
                     <a 
-                      href={`#/orders/${order.id}`}
+                      href={`/orders/${order.id}`}
                       className="text-indigo-600 hover:text-indigo-800 text-sm font-bold"
                     >
                       상세
@@ -154,7 +154,7 @@ const OrderList: React.FC = () => {
               </svg>
             </div>
             <p className="text-gray-400 font-medium">주문이 없습니다.</p>
-            <a href="#/drops" className="inline-block text-indigo-600 font-bold hover:underline">드랍 보러가기</a>
+            <a href="/drops" className="inline-block text-indigo-600 font-bold hover:underline">드랍 보러가기</a>
           </div>
         )}
       </div>

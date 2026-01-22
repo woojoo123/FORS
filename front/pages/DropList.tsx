@@ -48,7 +48,7 @@ const DropList: React.FC = () => {
         {filteredDrops.map(drop => (
           <a
             key={drop.id}
-            href={`#/drops/${drop.id}`}
+            href={`/drops/${drop.id}`}
             className="block bg-white border border-gray-200 rounded-2xl overflow-hidden group hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 cursor-pointer"
           >
             <div className="aspect-square bg-gray-50 relative overflow-hidden">

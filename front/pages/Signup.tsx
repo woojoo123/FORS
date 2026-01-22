@@ -27,7 +27,7 @@ const Signup: React.FC = () => {
         body: JSON.stringify({ email, password }),
       });
       addToast('회원가입이 완료되었습니다. 로그인해주세요.', 'success');
-      window.location.hash = '#/login';
+      window.location.href = '/login';
     } catch (err) {
       setError('회원가입에 실패했습니다.');
       addToast('회원가입 실패', 'error');
@@ -96,7 +96,7 @@ const Signup: React.FC = () => {
 
         <div className="mt-6 text-sm text-gray-500">
           이미 계정이 있으신가요?{' '}
-          <a href="#/login" className="text-indigo-600 font-semibold hover:underline">
+          <a href="/login" className="text-indigo-600 font-semibold hover:underline">
             로그인
           </a>
         </div>
