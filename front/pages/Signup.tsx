@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
 import { useApp } from '../App';
 import { api } from '../api';
-import { UserRole } from '../types';
-const Login: React.FC = () => {
-  const { login, addToast } = useApp();
+
+const Signup: React.FC = () => {
+  const { addToast } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -15,17 +15,22 @@ const Login: React.FC = () => {
     setLoading(true);
     setError('');
 
+    if (password !== passwordConfirm) {
+      setError('비밀번호가 일치하지 않습니다.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await api<void>('/api/auth/login', {
+      await api<void>('/api/auth/signup', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
-      const me = await api<{ id: number; email: string; role: UserRole }>('/api/auth/me');
-      login(me.email, me.role);
-      addToast(`Welcome back, ${me.email}`, 'success');
+      addToast('회원가입이 완료되었습니다. 로그인해주세요.', 'success');
+      window.location.hash = '#/login';
     } catch (err) {
-      setError('Invalid credentials.');
-      addToast('Login failed', 'error');
+      setError('회원가입에 실패했습니다.');
+      addToast('회원가입 실패', 'error');
     } finally {
       setLoading(false);
     }
@@ -34,14 +39,14 @@ const Login: React.FC = () => {
   return (
     <div className="max-w-md mx-auto mt-20">
       <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-        <h1 className="text-2xl font-bold mb-2">Sign in to FORS</h1>
-        <p className="text-gray-500 text-sm mb-8">Limited drops, instant access.</p>
-        
+        <h1 className="text-2xl font-bold mb-2">회원가입</h1>
+        <p className="text-gray-500 text-sm mb-8">이메일로 빠르게 가입하세요.</p>
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email address</label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -51,8 +56,8 @@ const Login: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Password</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -60,10 +65,21 @@ const Login: React.FC = () => {
               placeholder="••••••••"
             />
           </div>
-          
+          <div>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Confirm password</label>
+            <input
+              type="password"
+              required
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+              placeholder="••••••••"
+            />
+          </div>
+
           {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</p>}
-          
-          <button 
+
+          <button
             type="submit"
             disabled={loading}
             className="w-full bg-indigo-600 text-white font-semibold py-3.5 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
@@ -74,25 +90,19 @@ const Login: React.FC = () => {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             )}
-            Sign in
+            가입하기
           </button>
         </form>
 
         <div className="mt-6 text-sm text-gray-500">
-          아직 계정이 없으신가요?{' '}
-          <a href="#/signup" className="text-indigo-600 font-semibold hover:underline">
-            회원가입
+          이미 계정이 있으신가요?{' '}
+          <a href="#/login" className="text-indigo-600 font-semibold hover:underline">
+            로그인
           </a>
-        </div>
-
-        <div className="mt-8 pt-8 border-t border-gray-100 flex flex-col gap-2 text-xs text-gray-400 italic">
-          <p>Demo accounts:</p>
-          <p>User: user@fors.com / password</p>
-          <p>Admin: admin@fors.com / password</p>
         </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Signup;

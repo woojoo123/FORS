@@ -3,6 +3,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { User, UserRole } from './types';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Home from './pages/Home';
 import DropList from './pages/DropList';
 import DropDetail from './pages/DropDetail';
@@ -61,6 +62,7 @@ const App: React.FC = () => {
 
   const renderRoute = () => {
     if (currentPath === '#/login') return <Login />;
+    if (currentPath === '#/signup') return <Signup />;
     if (currentPath === '#/' || currentPath === '#/home') return <Home />;
 
     // Auth Guard
