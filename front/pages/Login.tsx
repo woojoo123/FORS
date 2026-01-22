@@ -22,10 +22,10 @@ const Login: React.FC = () => {
       });
       const me = await api<{ id: number; email: string; role: UserRole }>('/api/auth/me');
       login(me.email, me.role);
-      addToast(`Welcome back, ${me.email}`, 'success');
+      addToast(`${me.email} 님, 환영합니다.`, 'success');
     } catch (err) {
-      setError('Invalid credentials.');
-      addToast('Login failed', 'error');
+      setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+      addToast('로그인에 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -34,12 +34,12 @@ const Login: React.FC = () => {
   return (
     <div className="max-w-md mx-auto mt-20">
       <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-        <h1 className="text-2xl font-bold mb-2">Sign in to FORS</h1>
-        <p className="text-gray-500 text-sm mb-8">Limited drops, instant access.</p>
+        <h1 className="text-2xl font-bold mb-2">로그인</h1>
+        <p className="text-gray-500 text-sm mb-8">한정 드랍, 지금 바로.</p>
         
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email address</label>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">이메일</label>
             <input 
               type="email" 
               required
@@ -50,7 +50,7 @@ const Login: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Password</label>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">비밀번호</label>
             <input 
               type="password" 
               required
@@ -74,7 +74,7 @@ const Login: React.FC = () => {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             )}
-            Sign in
+            로그인
           </button>
         </form>
 
@@ -86,9 +86,9 @@ const Login: React.FC = () => {
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-100 flex flex-col gap-2 text-xs text-gray-400 italic">
-          <p>Demo accounts:</p>
-          <p>User: user@fors.com / password</p>
-          <p>Admin: admin@fors.com / password</p>
+          <p>데모 계정</p>
+          <p>사용자: user@fors.com / password</p>
+          <p>관리자: admin@fors.com / password</p>
         </div>
       </div>
     </div>

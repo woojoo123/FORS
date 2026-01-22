@@ -44,7 +44,7 @@ const Signup: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email address</label>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">이메일</label>
             <input
               type="email"
               required
@@ -55,7 +55,7 @@ const Signup: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Password</label>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">비밀번호</label>
             <input
               type="password"
               required
@@ -66,7 +66,7 @@ const Signup: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Confirm password</label>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">비밀번호 확인</label>
             <input
               type="password"
               required

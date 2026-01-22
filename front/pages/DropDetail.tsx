@@ -4,6 +4,7 @@ import { useApp } from '../App';
 import { Drop, DropStatus, OrderStatus, Order, Stock } from '../types';
 import Badge from '../components/Badge';
 import { api } from '../api';
+import { FALLBACK_DROP_IMAGE } from '../constants';
 
 const DropDetail: React.FC<{ id: string }> = ({ id }) => {
   const { addToast, user } = useApp();
@@ -15,19 +16,19 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
   useEffect(() => {
     const dropId = Number(id);
     if (Number.isNaN(dropId)) {
-      addToast('Invalid drop id', 'error');
+      addToast('잘못된 드랍 ID입니다.', 'error');
       return;
     }
     api<Drop>(`/api/drops/${dropId}`)
       .then(setDrop)
-      .catch(() => addToast('Drop not found', 'error'));
+      .catch(() => addToast('드랍을 찾을 수 없습니다.', 'error'));
   }, [id]);
 
-  if (!drop) return <div className="p-20 text-center">Drop not found.</div>;
+  if (!drop) return <div className="p-20 text-center">드랍을 찾을 수 없습니다.</div>;
 
   const handleCreateOrder = async () => {
     if (!selectedSkuId) {
-      addToast('Please select a size', 'error');
+      addToast('사이즈를 선택해주세요.', 'error');
       return;
     }
     if (!user) return;
@@ -59,9 +60,9 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
         sizeLabel,
       };
       setCurrentOrder(newOrder);
-      addToast('Order created! Please pay within 5 minutes.', 'success');
+      addToast('주문이 생성되었습니다. 5분 내 결제를 완료해주세요.', 'success');
     } catch (err) {
-      addToast('Failed to create order', 'error');
+      addToast('주문 생성에 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -80,9 +81,9 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
         }
       );
       setCurrentOrder(prev => prev ? { ...prev, status: res.orderStatus as OrderStatus } : null);
-      addToast(success ? 'Payment successful!' : 'Payment failed. Try again.', success ? 'success' : 'error');
+      addToast(success ? '결제가 완료되었습니다.' : '결제에 실패했습니다.', success ? 'success' : 'error');
     } catch (err) {
-      addToast('Payment request failed', 'error');
+      addToast('결제 요청에 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -95,7 +96,15 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
       <div className="lg:col-span-7 space-y-8">
         <div className="aspect-square bg-white border border-gray-200 rounded-2xl overflow-hidden p-8 flex items-center justify-center">
-          <img src={drop.imageUrl} alt={drop.name} className="max-w-full h-auto object-contain" />
+          <img
+            src={drop.imageUrl}
+            alt={drop.name}
+            className="max-w-full h-auto object-contain"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = FALLBACK_DROP_IMAGE;
+            }}
+          />
         </div>
         
         <div>
@@ -118,7 +127,7 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
             {!currentOrder ? (
               <>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Select Size</label>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">사이즈 선택</label>
                   <div className="grid grid-cols-3 gap-2">
                     {(drop.stocks ?? []).map((stock: Stock) => (
                       <button
@@ -135,14 +144,14 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
 
                 <div className="bg-gray-50 p-4 rounded-xl space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Remaining Stock</span>
-                    <span className="font-bold text-gray-900">{drop.remainingQty} units</span>
+                      <span className="text-gray-500">남은 수량</span>
+                      <span className="font-bold text-gray-900">{drop.remainingQty}개</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">구매 제한</span>
+                      <span className="font-bold text-gray-900">1인 1개</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Limit</span>
-                    <span className="font-bold text-gray-900">1 per user</span>
-                  </div>
-                </div>
 
                 <button
                   disabled={!isLive || isSoldOut || loading}
@@ -155,25 +164,25 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                   )}
-                  {isSoldOut ? 'Sold out' : !isLive ? 'Drop not live' : 'Create Order'}
+                  {isSoldOut ? '품절' : !isLive ? '진행중이 아님' : '주문 생성'}
                 </button>
 
-                <p className="text-center text-xs text-gray-400">Payment expires in 5 minutes after order creation.</p>
+                <p className="text-center text-xs text-gray-400">주문 생성 후 5분 내 결제가 필요합니다.</p>
               </>
             ) : (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl">
                   <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm font-bold text-emerald-800">Order Created</p>
+                    <p className="text-sm font-bold text-emerald-800">주문 생성</p>
                     <Badge status={currentOrder.status} />
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-emerald-700">Order ID</span>
+                      <span className="text-emerald-700">주문 ID</span>
                       <span className="font-mono font-bold text-emerald-900">{currentOrder.id}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-emerald-700">Expires at</span>
+                      <span className="text-emerald-700">만료 시간</span>
                       <span className="font-bold text-emerald-900">
                         {new Date(currentOrder.expiresAt!).toLocaleTimeString()}
                       </span>
@@ -183,24 +192,24 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
 
                 {currentOrder.status === OrderStatus.PAYMENT_PENDING && (
                   <div className="space-y-3">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Simulation Controls</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider text-center">결제 시뮬레이션</p>
                     <div className="flex gap-4">
                       <button 
                         onClick={() => handlePayment(true)}
                         disabled={loading}
                         className="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50"
                       >
-                        Pay Success
+                        결제 성공
                       </button>
                       <button 
                         onClick={() => handlePayment(false)}
                         disabled={loading}
                         className="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50"
                       >
-                        Pay Fail
+                        결제 실패
                       </button>
                     </div>
-                    <a href="#/orders" className="block text-center text-sm font-medium text-gray-500 hover:text-black mt-4 underline">View in My Orders</a>
+                    <a href="#/orders" className="block text-center text-sm font-medium text-gray-500 hover:text-black mt-4 underline">내 주문에서 보기</a>
                   </div>
                 )}
 
@@ -211,9 +220,9 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <p className="font-bold text-xl">Payment Received!</p>
-                    <p className="text-gray-500 text-sm">Your pair has been secured. We'll update you when it ships.</p>
-                    <a href="#/orders" className="block bg-black text-white font-bold py-3 rounded-xl">View Order History</a>
+                    <p className="font-bold text-xl">결제가 완료되었습니다!</p>
+                    <p className="text-gray-500 text-sm">상품이 확보되었습니다. 배송 시작 시 알려드릴게요.</p>
+                    <a href="#/orders" className="block bg-black text-white font-bold py-3 rounded-xl">주문내역 보기</a>
                   </div>
                 )}
               </div>

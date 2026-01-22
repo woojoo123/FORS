@@ -4,6 +4,7 @@ import { useApp } from '../App';
 import { Drop, Order, OrderStatus } from '../types';
 import Badge from '../components/Badge';
 import { api } from '../api';
+import { FALLBACK_DROP_IMAGE, ORDER_STATUS_LABELS } from '../constants';
 
 const OrderList: React.FC = () => {
   const { addToast } = useApp();
@@ -34,7 +35,7 @@ const OrderList: React.FC = () => {
         );
         setOrders(enriched);
       } catch (err) {
-        addToast('Failed to load orders', 'error');
+        addToast('주문을 불러오지 못했어요.', 'error');
       }
     };
     loadOrders();
@@ -57,8 +58,8 @@ const OrderList: React.FC = () => {
     <div>
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Orders</h1>
-          <p className="text-gray-500 mt-1">Manage your wins and fulfillment status.</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">주문내역</h1>
+          <p className="text-gray-500 mt-1">결제 및 배송 상태를 확인하세요.</p>
         </div>
         
         <div className="relative">
@@ -68,7 +69,7 @@ const OrderList: React.FC = () => {
             onChange={(e) => setStatusFilter(e.target.value as any)}
           >
             {filterOptions.map(opt => (
-              <option key={opt} value={opt}>{opt === 'ALL' ? 'All Statuses' : opt.replace('_', ' ')}</option>
+              <option key={opt} value={opt}>{opt === 'ALL' ? '전체 상태' : ORDER_STATUS_LABELS[opt]}</option>
             ))}
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
@@ -84,13 +85,14 @@ const OrderList: React.FC = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Date</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Order ID</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Product</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Size</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Amount</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">주문일</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">주문일</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">주문번호</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">상품</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">사이즈</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">금액</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">상태</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">보기</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -104,7 +106,14 @@ const OrderList: React.FC = () => {
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <img src={order.dropImageUrl} className="w-10 h-10 rounded-lg object-cover bg-gray-100" />
+                      <img
+                        src={order.dropImageUrl}
+                        className="w-10 h-10 rounded-lg object-cover bg-gray-100"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_DROP_IMAGE;
+                        }}
+                      />
                       <div>
                         <p className="text-sm font-bold text-gray-900">{order.dropName}</p>
                         <p className="text-xs text-gray-400">{order.dropBrand}</p>
@@ -120,7 +129,7 @@ const OrderList: React.FC = () => {
                   <td className="px-6 py-5">
                     <Badge status={order.status} />
                     {order.status === OrderStatus.PAYMENT_PENDING && (
-                      <p className="text-[10px] text-gray-400 mt-1">Exp: {new Date(order.expiresAt!).toLocaleTimeString()}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">만료: {new Date(order.expiresAt!).toLocaleTimeString()}</p>
                     )}
                   </td>
                   <td className="px-6 py-5">
@@ -128,7 +137,7 @@ const OrderList: React.FC = () => {
                       href={`#/orders/${order.id}`}
                       className="text-indigo-600 hover:text-indigo-800 text-sm font-bold"
                     >
-                      Details
+                      상세
                     </a>
                   </td>
                 </tr>
@@ -144,8 +153,8 @@ const OrderList: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </div>
-            <p className="text-gray-400 font-medium">No orders found.</p>
-            <a href="#/drops" className="inline-block text-indigo-600 font-bold hover:underline">Browse drops</a>
+            <p className="text-gray-400 font-medium">주문이 없습니다.</p>
+            <a href="#/drops" className="inline-block text-indigo-600 font-bold hover:underline">드랍 보러가기</a>
           </div>
         )}
       </div>

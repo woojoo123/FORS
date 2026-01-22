@@ -3,9 +3,10 @@ import { useApp } from '../App';
 import { Drop } from '../types';
 import Badge from '../components/Badge';
 import { api } from '../api';
+import { FALLBACK_DROP_IMAGE } from '../constants';
 
 const Home: React.FC = () => {
-  const { addToast, user } = useApp();
+  const { addToast } = useApp();
   const [drops, setDrops] = useState<Drop[]>([]);
   const [tab, setTab] = useState<'today' | 'new'>('today');
 
@@ -98,6 +99,10 @@ const Home: React.FC = () => {
                   src={drop.imageUrl}
                   alt={drop.name}
                   className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-300"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = FALLBACK_DROP_IMAGE;
+                  }}
                 />
               </div>
               <div className="p-5 border-t border-gray-200">

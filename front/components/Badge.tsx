@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { DropStatus, OrderStatus } from '../types';
+import { DROP_STATUS_LABELS, ORDER_STATUS_LABELS } from '../constants';
 
 interface BadgeProps {
   status: DropStatus | OrderStatus;
@@ -23,9 +24,14 @@ const Badge: React.FC<BadgeProps> = ({ status, className = "" }) => {
     [OrderStatus.DELIVERED]: "bg-gray-900 text-white border-transparent",
   };
 
+  const label =
+    status in DROP_STATUS_LABELS
+      ? DROP_STATUS_LABELS[status as DropStatus]
+      : ORDER_STATUS_LABELS[status as OrderStatus] ?? status.replace('_', ' ');
+
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles[status] || ""} ${className}`}>
-      {status.replace('_', ' ')}
+      {label}
     </span>
   );
 };
