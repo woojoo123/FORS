@@ -31,7 +31,10 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
       addToast('사이즈를 선택해주세요.', 'error');
       return;
     }
-    if (!user) return;
+    if (!user) {
+      window.location.hash = '#/login';
+      return;
+    }
 
     setLoading(true);
     try {

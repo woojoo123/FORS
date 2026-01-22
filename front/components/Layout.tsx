@@ -12,15 +12,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 py-4 px-6 sm:px-12 flex justify-between items-center">
         <div className="flex items-center gap-10">
           <a href="#/" className="text-xl font-bold tracking-tight">FORS</a>
-          {user && (
-            <div className="hidden md:flex gap-6 text-sm font-medium text-gray-600">
-              <a href="#/drops" className="hover:text-black transition-colors">드랍</a>
-              <a href="#/orders" className="hover:text-black transition-colors">주문내역</a>
-              {user.role === UserRole.ADMIN && (
-                <a href="#/admin/orders" className="hover:text-black transition-colors font-semibold border-l pl-6 border-gray-200">관리자</a>
-              )}
-            </div>
-          )}
+          <div className="hidden md:flex gap-6 text-sm font-medium text-gray-600">
+            <a href="#/drops" className="hover:text-black transition-colors">드랍</a>
+            <a href={user ? '#/orders' : '#/login'} className="hover:text-black transition-colors">마이페이지</a>
+            {user?.role === UserRole.ADMIN && (
+              <a href="#/admin/orders" className="hover:text-black transition-colors font-semibold border-l pl-6 border-gray-200">관리자</a>
+            )}
+          </div>
         </div>
         
         <div className="flex items-center gap-4 text-sm font-medium">

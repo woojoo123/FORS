@@ -92,7 +92,17 @@ const App: React.FC = () => {
     if (currentPath === '#/' || currentPath === '#/home') return <Home />;
 
     // Auth Guard
-    if (!user) return <Login />;
+    if (!user) {
+      if (currentPath === '#/drops' || currentPath.startsWith('#/drops/')) {
+        return currentPath.startsWith('#/drops/')
+          ? (() => {
+              const id = currentPath.split('/')[2];
+              return <DropDetail id={id} />;
+            })()
+          : <DropList />;
+      }
+      return <Login />;
+    }
 
     if (currentPath.startsWith('#/drops/')) {
       const id = currentPath.split('/')[2];
