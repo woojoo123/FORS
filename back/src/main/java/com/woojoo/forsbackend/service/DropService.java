@@ -35,7 +35,7 @@ public class DropService {
         DropEventEntity drop = dropEventRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "DROP_NOT_FOUND"));
 
-        var stocks = dropStockRepository.findByDropEventId(id).stream()
+        var stocks = dropStockRepository.findByDropEvent_Id(id).stream()
             .map(s -> new StockResponse(s.getSkuId(), s.getRemainingQty()))
             .toList();
 

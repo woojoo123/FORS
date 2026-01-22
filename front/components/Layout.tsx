@@ -11,7 +11,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="min-h-screen flex flex-col">
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 py-4 px-6 sm:px-12 flex justify-between items-center">
         <div className="flex items-center gap-10">
-          <a href="#/drops" className="text-xl font-bold tracking-tight">FORS</a>
+          <a href="#/" className="text-xl font-bold tracking-tight">FORS</a>
           {user && (
             <div className="hidden md:flex gap-6 text-sm font-medium text-gray-600">
               <a href="#/drops" className="hover:text-black transition-colors">Drops</a>

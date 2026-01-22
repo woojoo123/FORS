@@ -1,19 +1,40 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../App';
-import { OrderStatus } from '../types';
+import { Drop, Order, OrderStatus } from '../types';
 import Badge from '../components/Badge';
+import { api } from '../api';
 
 const OrderDetail: React.FC<{ id: string }> = ({ id }) => {
-  const { orders, updateOrder, addToast } = useApp();
-  const order = orders.find(o => o.id === id);
+  const { addToast } = useApp();
+  const [order, setOrder] = useState<Order | null>(null);
+
+  useEffect(() => {
+    const loadOrder = async () => {
+      const orderId = Number(id);
+      if (Number.isNaN(orderId)) {
+        addToast('Invalid order id', 'error');
+        return;
+      }
+      try {
+        const rawOrder = await api<Order>(`/api/orders/${orderId}`);
+        const drop = await api<Drop>(`/api/drops/${rawOrder.dropEventId}`);
+        setOrder({
+          ...rawOrder,
+          dropName: drop.name,
+          dropBrand: drop.brand,
+          dropImageUrl: drop.imageUrl,
+          amount: drop.price,
+          sizeLabel: `SKU ${rawOrder.skuId}`,
+        });
+      } catch (err) {
+        addToast('Order not found', 'error');
+      }
+    };
+    loadOrder();
+  }, [id]);
 
   if (!order) return <div className="p-20 text-center">Order not found.</div>;
-
-  const handleCancel = () => {
-    updateOrder(order.id, { status: OrderStatus.CANCELED });
-    addToast('Order canceled successfully', 'success');
-  };
 
   const steps = [
     { label: 'Created', status: OrderStatus.PAYMENT_PENDING, active: true },
@@ -74,17 +95,17 @@ const OrderDetail: React.FC<{ id: string }> = ({ id }) => {
         <div className="bg-white border border-gray-200 rounded-2xl p-8 space-y-6">
           <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Order Summary</h2>
           <div className="flex gap-4">
-            <img src={order.dropImage} className="w-20 h-20 rounded-xl object-cover bg-gray-50" />
+            <img src={order.dropImageUrl} className="w-20 h-20 rounded-xl object-cover bg-gray-50" />
             <div>
               <p className="text-lg font-bold text-gray-900">{order.dropName}</p>
-              <p className="text-gray-500 font-medium">Size: {order.size}</p>
-              <p className="text-gray-500 font-medium">Price: ${order.amount}</p>
+              <p className="text-gray-500 font-medium">Size: {order.sizeLabel}</p>
+              <p className="text-gray-500 font-medium">Price: {order.amount ? `$${order.amount}` : '—'}</p>
             </div>
           </div>
           <div className="pt-6 border-t border-gray-100 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Subtotal</span>
-              <span className="font-bold text-gray-900">${order.amount}.00</span>
+              <span className="font-bold text-gray-900">{order.amount ? `$${order.amount}.00` : '—'}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Shipping</span>
@@ -92,7 +113,7 @@ const OrderDetail: React.FC<{ id: string }> = ({ id }) => {
             </div>
             <div className="flex justify-between text-lg pt-2">
               <span className="font-bold text-gray-900">Total</span>
-              <span className="font-black text-gray-900">${order.amount}.00</span>
+              <span className="font-black text-gray-900">{order.amount ? `$${order.amount}.00` : '—'}</span>
             </div>
           </div>
         </div>
@@ -130,12 +151,9 @@ const OrderDetail: React.FC<{ id: string }> = ({ id }) => {
             )}
             {order.status === OrderStatus.PAYMENT_PENDING && (
               <div className="pt-4">
-                <button 
-                  onClick={handleCancel}
-                  className="w-full text-center text-sm font-bold text-red-600 hover:bg-red-50 py-3 rounded-xl transition-colors border border-red-100"
-                >
-                  Cancel Order
-                </button>
+                <div className="w-full text-center text-sm font-bold text-gray-400 py-3 rounded-xl border border-gray-100">
+                  Cancel not supported yet
+                </div>
               </div>
             )}
           </div>

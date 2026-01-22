@@ -1,12 +1,20 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../App';
-import { DropStatus } from '../types';
+import { Drop, DropStatus } from '../types';
 import Badge from '../components/Badge';
+import { api } from '../api';
 
 const DropList: React.FC = () => {
-  const { drops } = useApp();
+  const { addToast } = useApp();
+  const [drops, setDrops] = useState<Drop[]>([]);
   const [filter, setFilter] = useState<DropStatus | 'ALL'>('ALL');
+
+  useEffect(() => {
+    api<Drop[]>('/api/drops')
+      .then(setDrops)
+      .catch(() => addToast('Failed to load drops', 'error'));
+  }, []);
 
   const filteredDrops = filter === 'ALL' 
     ? drops 
@@ -40,7 +48,7 @@ const DropList: React.FC = () => {
           <div key={drop.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden group hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300">
             <div className="aspect-square bg-gray-50 relative overflow-hidden">
               <img 
-                src={drop.image} 
+                src={drop.imageUrl} 
                 alt={drop.name} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -55,8 +63,8 @@ const DropList: React.FC = () => {
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{drop.brand}</p>
                   <h3 className="font-bold text-lg text-gray-900 leading-tight">{drop.name}</h3>
                 </div>
-                <p className="font-bold text-indigo-600">${drop.price}</p>
-              </div>
+                  <p className="font-bold text-indigo-600">${drop.price}</p>
+                </div>
               
               <div className="mt-6 flex items-center justify-between">
                 <div className="text-xs text-gray-500">
@@ -66,7 +74,7 @@ const DropList: React.FC = () => {
                       Ending soon
                     </span>
                   ) : drop.status === DropStatus.SCHEDULED ? (
-                    <span>Opens {new Date(drop.opensAt).toLocaleDateString()}</span>
+                    <span>Opens {new Date(drop.startsAt).toLocaleDateString()}</span>
                   ) : (
                     <span>Sold out</span>
                   )}

@@ -1,66 +1,91 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../App';
-import { DropStatus, OrderStatus, Order } from '../types';
-import { SIZES } from '../constants';
+import { Drop, DropStatus, OrderStatus, Order, Stock } from '../types';
 import Badge from '../components/Badge';
+import { api } from '../api';
 
 const DropDetail: React.FC<{ id: string }> = ({ id }) => {
-  const { drops, addOrder, addToast, user, updateOrder } = useApp();
-  const [selectedSize, setSelectedSize] = useState('');
+  const { addToast, user } = useApp();
+  const [drop, setDrop] = useState<Drop | null>(null);
+  const [selectedSkuId, setSelectedSkuId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
 
-  const drop = drops.find(d => d.id === id);
+  useEffect(() => {
+    const dropId = Number(id);
+    if (Number.isNaN(dropId)) {
+      addToast('Invalid drop id', 'error');
+      return;
+    }
+    api<Drop>(`/api/drops/${dropId}`)
+      .then(setDrop)
+      .catch(() => addToast('Drop not found', 'error'));
+  }, [id]);
 
   if (!drop) return <div className="p-20 text-center">Drop not found.</div>;
 
-  const handleCreateOrder = () => {
-    if (!selectedSize) {
+  const handleCreateOrder = async () => {
+    if (!selectedSkuId) {
       addToast('Please select a size', 'error');
       return;
     }
     if (!user) return;
 
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const idempotencyKey = crypto.randomUUID();
+      const res = await api<{ id: number; status: string; expiresAt: string }>('/api/orders', {
+        method: 'POST',
+        headers: { 'Idempotency-Key': idempotencyKey },
+        body: JSON.stringify({
+          dropEventId: drop.id,
+          skuId: selectedSkuId,
+          amount: drop.price,
+        }),
+      });
+      const sizeLabel = `SKU ${selectedSkuId}`;
       const newOrder: Order = {
-        id: `ORD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        userId: user.email,
-        userEmail: user.email,
-        dropId: drop.id,
+        id: res.id,
+        dropEventId: drop.id,
+        skuId: selectedSkuId,
+        status: res.status as OrderStatus,
+        createdAt: new Date().toISOString(),
+        expiresAt: res.expiresAt,
+        amount: drop.price,
         dropName: drop.name,
         dropBrand: drop.brand,
-        dropImage: drop.image,
-        size: selectedSize,
-        amount: drop.price,
-        status: OrderStatus.PAYMENT_PENDING,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 300000).toISOString(), // 5 mins
+        dropImageUrl: drop.imageUrl,
+        sizeLabel,
       };
-      addOrder(newOrder);
       setCurrentOrder(newOrder);
-      setLoading(false);
       addToast('Order created! Please pay within 5 minutes.', 'success');
-    }, 1000);
+    } catch (err) {
+      addToast('Failed to create order', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePayment = (success: boolean) => {
+  const handlePayment = async (success: boolean) => {
     if (!currentOrder) return;
     setLoading(true);
-    setTimeout(() => {
-      if (success) {
-        updateOrder(currentOrder.id, { 
-          status: OrderStatus.PAID, 
-          paidAt: new Date().toISOString() 
-        });
-        setCurrentOrder(prev => prev ? { ...prev, status: OrderStatus.PAID } : null);
-        addToast('Payment successful!', 'success');
-      } else {
-        addToast('Payment failed. Try again.', 'error');
-      }
+    try {
+      const result = success ? 'SUCCEED' : 'FAIL';
+      const res = await api<{ orderId: number; orderStatus: string; paymentStatus: string }>(
+        `/api/orders/${currentOrder.id}/pay`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ result }),
+        }
+      );
+      setCurrentOrder(prev => prev ? { ...prev, status: res.orderStatus as OrderStatus } : null);
+      addToast(success ? 'Payment successful!' : 'Payment failed. Try again.', success ? 'success' : 'error');
+    } catch (err) {
+      addToast('Payment request failed', 'error');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   const isLive = drop.status === DropStatus.LIVE;
@@ -70,7 +95,7 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
       <div className="lg:col-span-7 space-y-8">
         <div className="aspect-square bg-white border border-gray-200 rounded-2xl overflow-hidden p-8 flex items-center justify-center">
-          <img src={drop.image} alt={drop.name} className="max-w-full h-auto object-contain" />
+          <img src={drop.imageUrl} alt={drop.name} className="max-w-full h-auto object-contain" />
         </div>
         
         <div>
@@ -95,13 +120,14 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Select Size</label>
                   <div className="grid grid-cols-3 gap-2">
-                    {SIZES.map(size => (
+                    {(drop.stocks ?? []).map((stock: Stock) => (
                       <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`py-3 text-sm font-bold rounded-xl border transition-all ${selectedSize === size ? 'bg-black text-white border-black' : 'bg-white text-gray-900 border-gray-200 hover:border-gray-900'}`}
+                        key={stock.skuId}
+                        onClick={() => setSelectedSkuId(stock.skuId)}
+                        disabled={stock.remainingQty <= 0}
+                        className={`py-3 text-sm font-bold rounded-xl border transition-all ${selectedSkuId === stock.skuId ? 'bg-black text-white border-black' : 'bg-white text-gray-900 border-gray-200 hover:border-gray-900'} disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        {size.split(' ')[1]}
+                        SKU {stock.skuId}
                       </button>
                     ))}
                   </div>

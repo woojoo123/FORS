@@ -24,29 +24,30 @@ export interface User {
   role: UserRole;
 }
 
+export interface Stock {
+  skuId: number;
+  remainingQty: number;
+}
+
 export interface Drop {
-  id: string;
+  id: number;
   name: string;
   brand: string;
   price: number;
-  image: string;
+  imageUrl: string;
   description: string;
-  opensAt: string;
+  startsAt: string;
   endsAt: string;
   remainingQty: number;
   status: DropStatus;
+  stocks?: Stock[];
 }
 
 export interface Order {
-  id: string;
-  userId: string;
-  userEmail: string;
-  dropId: string;
-  dropName: string;
-  dropBrand: string;
-  dropImage: string;
-  size: string;
-  amount: number;
+  id: number;
+  userId?: number;
+  dropEventId: number;
+  skuId: number;
   status: OrderStatus;
   createdAt: string;
   expiresAt?: string;
@@ -55,4 +56,9 @@ export interface Order {
   deliveredAt?: string;
   carrier?: string;
   trackingNo?: string;
+  amount?: number;
+  dropName?: string;
+  dropBrand?: string;
+  dropImageUrl?: string;
+  sizeLabel?: string;
 }

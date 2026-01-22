@@ -4,7 +4,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.woojoo.forsbackend.dto.LoginRequest;
+import com.woojoo.forsbackend.dto.MeResponse;
 import com.woojoo.forsbackend.dto.SignupRequest;
+import com.woojoo.forsbackend.repository.UserRepository;
 import com.woojoo.forsbackend.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+
 
 
 @RestController
@@ -27,13 +31,16 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AuthService authService;
     private final SecurityContextRepository securityContextRepository;
+    private final UserRepository userRepository;
     
     public AuthController(AuthService authService,
                           AuthenticationManager authenticationManager,
-                          SecurityContextRepository securityContextRepository) { 
+                          SecurityContextRepository securityContextRepository,
+                          UserRepository userRepository) { 
         this.authService = authService;
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
+        this.userRepository = userRepository;
      }
 
     @PostMapping("/signup")
@@ -62,5 +69,19 @@ public class AuthController {
     securityContextRepository.saveContext(context, request, response);
 
     return ResponseEntity.ok().build();
-}
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<MeResponse> me(Authentication authentication) {
+        String email = authentication.getName();
+        var user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalStateException("USER_NOT_FOUND"));
+
+        String role = user.getRoles().stream()
+            .findFirst()
+            .map(r -> r.getRole())
+            .orElse("USER");
+
+        return ResponseEntity.ok(new MeResponse(user.getId(), user.getEmail(), role));
+    } 
 }

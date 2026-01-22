@@ -44,7 +44,7 @@ public class OrderService {
     }
 
     @Transactional
-    public CreateOrderResponse createOrder(CreateOrderRequest req, String idempotencyKey) {
+    public CreateOrderResponse createOrder(CreateOrderRequest req, String idempotencyKey, Long userId) {
         if (idempotencyKey == null || idempotencyKey.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "IDEMPOTENCY_KEY_REQUIRED");
         }
@@ -69,7 +69,7 @@ public class OrderService {
             throw new IllegalStateException("SOLD_OUT");
         }
 
-        OrderEntity order = newOrderEntity(req, idempotencyKey);
+        OrderEntity order = newOrderEntity(req, idempotencyKey, userId);
         OrderEntity saved;
         try {
             saved = orderRepository.save(order);
@@ -178,9 +178,9 @@ public class OrderService {
         return new CreateOrderResponse(order.getId(), order.getStatus(), order.getExpiresAt().toString());
     }
 
-    private OrderEntity newOrderEntity(CreateOrderRequest req, String idempotencyKey) {
+    private OrderEntity newOrderEntity(CreateOrderRequest req, String idempotencyKey, Long userId) {
         OrderEntity order = new OrderEntity();
-        order.setUserId(req.userId());
+        order.setUserId(userId);
         order.setDropEventId(req.dropEventId());
         order.setSkuId(req.skuId());
         order.setStatus("PAYMENT_PENDING");

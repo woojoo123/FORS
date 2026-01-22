@@ -35,9 +35,14 @@ public class OrderController {
     @PostMapping("/orders")
     public ResponseEntity<CreateOrderResponse> create(
             @RequestHeader(value="Idempotency-Key", required=true) String idemKey,
-            @RequestBody CreateOrderRequest req
+            @RequestBody CreateOrderRequest req,
+            Authentication authentication
     ) {
-        return ResponseEntity.ok(orderService.createOrder(req, idemKey));
+        String email = authentication.getName();
+        Long userId = userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalStateException("USER_NOT_FOUND"))
+            .getId();
+        return ResponseEntity.ok(orderService.createOrder(req, idemKey, userId));
     }
 
     @PostMapping("/orders/{orderId}/pay")

@@ -1,24 +1,21 @@
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { User, Drop, Order, UserRole, DropStatus, OrderStatus } from './types';
-import { INITIAL_DROPS, MOCK_USERS } from './constants';
+import { User, UserRole } from './types';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import Home from './pages/Home';
 import DropList from './pages/DropList';
 import DropDetail from './pages/DropDetail';
 import OrderList from './pages/OrderList';
 import OrderDetail from './pages/OrderDetail';
 import AdminOrders from './pages/AdminOrders';
 import ToastContainer from './components/ToastContainer';
+import { api } from './api';
 
 interface AppState {
   user: User | null;
-  drops: Drop[];
-  orders: Order[];
   login: (email: string, role: UserRole) => void;
   logout: () => void;
-  addOrder: (order: Order) => void;
-  updateOrder: (orderId: string, updates: Partial<Order>) => void;
   addToast: (msg: string, type: 'success' | 'error') => void;
 }
 
@@ -32,14 +29,12 @@ export const useApp = () => {
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [drops, setDrops] = useState<Drop[]>(INITIAL_DROPS);
-  const [orders, setOrders] = useState<Order[]>([]);
   const [toasts, setToasts] = useState<{ id: number; message: string; type: 'success' | 'error' }[]>([]);
-  const [currentPath, setCurrentPath] = useState<string>(window.location.hash || '#/drops');
+  const [currentPath, setCurrentPath] = useState<string>(window.location.hash || '#/');
 
   useEffect(() => {
     const handleHashChange = () => {
-      setCurrentPath(window.location.hash || '#/drops');
+      setCurrentPath(window.location.hash || '#/');
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
@@ -51,26 +46,9 @@ const App: React.FC = () => {
   };
 
   const logout = () => {
+    api<void>('/api/auth/logout', { method: 'POST' }).catch(() => {});
     setUser(null);
     window.location.hash = '#/login';
-  };
-
-  const addOrder = (order: Order) => {
-    setOrders(prev => [order, ...prev]);
-    // Simulate inventory reduction
-    setDrops(prev => prev.map(d => d.id === order.dropId ? { ...d, remainingQty: d.remainingQty - 1 } : d));
-  };
-
-  const updateOrder = (orderId: string, updates: Partial<Order>) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates } : o));
-    
-    // If order is canceled or expired, restore stock
-    if (updates.status === OrderStatus.CANCELED || updates.status === OrderStatus.EXPIRED) {
-      const order = orders.find(o => o.id === orderId);
-      if (order) {
-        setDrops(prev => prev.map(d => d.id === order.dropId ? { ...d, remainingQty: d.remainingQty + 1 } : d));
-      }
-    }
   };
 
   const addToast = (message: string, type: 'success' | 'error') => {
@@ -83,7 +61,8 @@ const App: React.FC = () => {
 
   const renderRoute = () => {
     if (currentPath === '#/login') return <Login />;
-    
+    if (currentPath === '#/' || currentPath === '#/home') return <Home />;
+
     // Auth Guard
     if (!user) return <Login />;
 
@@ -102,7 +81,7 @@ const App: React.FC = () => {
     return <DropList />;
   };
 
-  const state: AppState = { user, drops, orders, login, logout, addOrder, updateOrder, addToast };
+  const state: AppState = { user, login, logout, addToast };
 
   return (
     <AppContext.Provider value={state}>

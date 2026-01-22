@@ -17,7 +17,7 @@ public interface DropStockRepository extends JpaRepository<DropStockEntity, Long
     @Query("""
         UPDATE DropStockEntity s
         SET s.remainingQty = s.remainingQty - 1
-        WHERE s.dropEventId = :dropEventId
+        WHERE s.dropEvent.id = :dropEventId
           AND s.skuId = :skuId
           AND s.remainingQty > 0
     """)
@@ -29,7 +29,7 @@ public interface DropStockRepository extends JpaRepository<DropStockEntity, Long
     @Query("""
         UPDATE DropStockEntity s
         SET s.remainingQty = s.remainingQty + 1
-        WHERE s.dropEventId = :dropEventId
+        WHERE s.dropEvent.id = :dropEventId
           AND s.skuId = :skuId
     """)
     int increase(@Param("dropEventId") Long dropEventId,
@@ -38,5 +38,5 @@ public interface DropStockRepository extends JpaRepository<DropStockEntity, Long
     @Query("SELECT COALESCE(SUM(s.remainingQty), 0) FROM DropStockEntity s WHERE s.dropEvent.id = :dropEventId")
     Integer sumRemainingQty(@Param("dropEventId") Long dropEventId);
 
-    List<DropStockEntity> findByDropEventId(Long dropEventId);
+    List<DropStockEntity> findByDropEvent_Id(Long dropEventId);
 }

@@ -1,11 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../App';
 import { OrderStatus, Order } from '../types';
 import Badge from '../components/Badge';
+import { api } from '../api';
 
 const AdminOrders: React.FC = () => {
-  const { orders, updateOrder, addToast } = useApp();
+  const { addToast } = useApp();
+  const [orders, setOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL');
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -14,35 +16,40 @@ const AdminOrders: React.FC = () => {
   const [carrier, setCarrier] = useState('UPS');
   const [tracking, setTracking] = useState('');
 
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const data = await api<Order[]>('/api/admin/orders');
+        setOrders(data);
+      } catch (err) {
+        addToast('Failed to load admin orders', 'error');
+      }
+    };
+    loadOrders();
+  }, []);
+
   const filteredOrders = orders.filter(o => {
     const matchesStatus = statusFilter === 'ALL' || o.status === statusFilter;
-    const matchesSearch = o.id.toLowerCase().includes(search.toLowerCase()) || 
-                          o.userEmail.toLowerCase().includes(search.toLowerCase());
-    return matchesStatus && matchesSearch;
+    const idMatch = String(o.id).toLowerCase().includes(search.toLowerCase());
+    const userMatch = String(o.userId ?? '').toLowerCase().includes(search.toLowerCase());
+    return matchesStatus && (idMatch || userMatch);
   });
 
-  const handleShip = (e: React.FormEvent) => {
+  const handleShip = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder || !tracking) return;
     
-    updateOrder(selectedOrder.id, {
-      status: OrderStatus.SHIPPING,
-      shippedAt: new Date().toISOString(),
-      carrier,
-      trackingNo: tracking
-    });
-    
-    addToast(`Order ${selectedOrder.id} marked as shipping`, 'success');
-    setSelectedOrder(null);
-    setTracking('');
-  };
-
-  const handleDeliver = (orderId: string) => {
-    updateOrder(orderId, {
-      status: OrderStatus.DELIVERED,
-      deliveredAt: new Date().toISOString()
-    });
-    addToast('Order marked as delivered', 'success');
+    try {
+      await api<Order>(`/api/admin/orders/${selectedOrder.id}/ship`, {
+        method: 'POST',
+      });
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, status: OrderStatus.SHIPPING } : o));
+      addToast(`Order ${selectedOrder.id} marked as shipping`, 'success');
+      setSelectedOrder(null);
+      setTracking('');
+    } catch (err) {
+      addToast('Failed to ship order', 'error');
+    }
   };
 
   return (
@@ -55,9 +62,9 @@ const AdminOrders: React.FC = () => {
         
         <div className="flex gap-4">
           <div className="relative">
-            <input 
+              <input 
               type="text"
-              placeholder="Search ID or email..."
+              placeholder="Search order or drop id..."
               className="bg-white border border-gray-200 px-4 py-2 pl-10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 w-64"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -100,16 +107,16 @@ const AdminOrders: React.FC = () => {
                 <tr key={order.id} className="hover:bg-gray-50/50">
                   <td className="px-6 py-5 font-mono font-bold text-gray-900">{order.id}</td>
                   <td className="px-6 py-5">
-                    <p className="font-medium text-gray-900">{order.userEmail}</p>
+                    <p className="font-medium text-gray-900">User #{order.userId ?? '—'}</p>
                     <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </td>
                   <td className="px-6 py-5">
-                    <p className="font-bold text-gray-900">{order.dropName}</p>
-                    <p className="text-xs text-gray-400">{order.dropId}</p>
+                    <p className="font-bold text-gray-900">Drop #{order.dropEventId}</p>
+                    <p className="text-xs text-gray-400">SKU {order.skuId}</p>
                   </td>
                   <td className="px-6 py-5">
-                    <p className="text-gray-600">{order.size}</p>
-                    <p className="font-bold text-gray-900">${order.amount}</p>
+                    <p className="text-gray-600">SKU {order.skuId}</p>
+                    <p className="font-bold text-gray-900">{order.amount ? `$${order.amount}` : '—'}</p>
                   </td>
                   <td className="px-6 py-5"><Badge status={order.status} /></td>
                   <td className="px-6 py-5">
@@ -119,14 +126,6 @@ const AdminOrders: React.FC = () => {
                         className="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
                       >
                         Ship
-                      </button>
-                    )}
-                    {order.status === OrderStatus.SHIPPING && (
-                      <button 
-                        onClick={() => handleDeliver(order.id)}
-                        className="bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-black transition-colors"
-                      >
-                        Mark Delivered
                       </button>
                     )}
                     {![OrderStatus.PAID, OrderStatus.SHIPPING].includes(order.status) && (

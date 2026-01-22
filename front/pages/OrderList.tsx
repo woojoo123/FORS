@@ -1,17 +1,48 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../App';
-import { OrderStatus } from '../types';
+import { Drop, Order, OrderStatus } from '../types';
 import Badge from '../components/Badge';
+import { api } from '../api';
 
 const OrderList: React.FC = () => {
-  const { orders, user } = useApp();
+  const { addToast } = useApp();
+  const [orders, setOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL');
 
-  const myOrders = orders.filter(o => o.userEmail === user?.email);
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const rawOrders = await api<Order[]>('/api/orders/me');
+        const dropCache = new Map<number, Drop>();
+        const enriched = await Promise.all(
+          rawOrders.map(async (order) => {
+            let drop = dropCache.get(order.dropEventId);
+            if (!drop) {
+              drop = await api<Drop>(`/api/drops/${order.dropEventId}`);
+              dropCache.set(order.dropEventId, drop);
+            }
+            return {
+              ...order,
+              dropName: drop.name,
+              dropBrand: drop.brand,
+              dropImageUrl: drop.imageUrl,
+              amount: drop.price,
+              sizeLabel: `SKU ${order.skuId}`,
+            };
+          })
+        );
+        setOrders(enriched);
+      } catch (err) {
+        addToast('Failed to load orders', 'error');
+      }
+    };
+    loadOrders();
+  }, []);
+
   const filteredOrders = statusFilter === 'ALL' 
-    ? myOrders 
-    : myOrders.filter(o => o.status === statusFilter);
+    ? orders 
+    : orders.filter(o => o.status === statusFilter);
 
   const filterOptions: (OrderStatus | 'ALL')[] = [
     'ALL', 
@@ -73,7 +104,7 @@ const OrderList: React.FC = () => {
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <img src={order.dropImage} className="w-10 h-10 rounded-lg object-cover bg-gray-100" />
+                      <img src={order.dropImageUrl} className="w-10 h-10 rounded-lg object-cover bg-gray-100" />
                       <div>
                         <p className="text-sm font-bold text-gray-900">{order.dropName}</p>
                         <p className="text-xs text-gray-400">{order.dropBrand}</p>
@@ -81,10 +112,10 @@ const OrderList: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-5 text-sm text-gray-600">
-                    {order.size}
+                    {order.sizeLabel}
                   </td>
                   <td className="px-6 py-5 text-sm font-bold text-gray-900">
-                    ${order.amount}
+                    {order.amount ? `$${order.amount}` : '—'}
                   </td>
                   <td className="px-6 py-5">
                     <Badge status={order.status} />
