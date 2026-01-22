@@ -84,12 +84,6 @@ const Login: React.FC = () => {
             회원가입
           </a>
         </div>
-
-        <div className="mt-8 pt-8 border-t border-gray-100 flex flex-col gap-2 text-xs text-gray-400 italic">
-          <p>데모 계정</p>
-          <p>사용자: user@fors.com / password</p>
-          <p>관리자: admin@fors.com / password</p>
-        </div>
       </div>
     </div>
   );
