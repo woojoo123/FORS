@@ -90,28 +90,30 @@ const Home: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         {activeDrops.map(drop => (
           <div key={drop.id} className="group">
-            <div className="text-xs font-semibold text-red-500 mb-3">
-              {tab === 'live'
-                ? `마감 ${new Date(drop.endsAt).toLocaleTimeString('ko-KR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })} · ${formatRemaining(drop.endsAt)}`
-                : `오픈 ${new Date(drop.startsAt).toLocaleTimeString('ko-KR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })} · ${formatRemaining(drop.startsAt)}`}
-            </div>
+            <a href={`#/drops/${drop.id}`} className="block cursor-pointer">
+              <div className="text-xs font-semibold text-red-500 mb-3">
+                {tab === 'live'
+                  ? `마감 ${new Date(drop.endsAt).toLocaleTimeString('ko-KR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })} · ${formatRemaining(drop.endsAt)}`
+                  : `오픈 ${new Date(drop.startsAt).toLocaleTimeString('ko-KR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })} · ${formatRemaining(drop.startsAt)}`}
+              </div>
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-              <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center">
+              <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center relative">
                 <img
                   src={drop.imageUrl}
                   alt={drop.name}
-                  className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                   onError={(e) => {
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = FALLBACK_DROP_IMAGE;
                   }}
                 />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
               </div>
               <div className="p-5 border-t border-gray-200">
                 <div className="flex items-start justify-between gap-3">
@@ -124,15 +126,10 @@ const Home: React.FC = () => {
                 <div className="mt-4 flex items-center justify-between">
                   <div className="text-sm font-semibold text-gray-900">{formatKRW(drop.price)}</div>
                   <div className="text-xs font-semibold text-gray-500">남은 {drop.remainingQty}개</div>
-                  <a
-                    href={`#/drops/${drop.id}`}
-                    className="text-xs font-semibold bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors"
-                  >
-                    상세보기
-                  </a>
                 </div>
               </div>
             </div>
+            </a>
           </div>
         ))}
       </div>

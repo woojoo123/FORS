@@ -30,6 +30,7 @@ export const useApp = () => {
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [toasts, setToasts] = useState<{ id: number; message: string; type: 'success' | 'error' }[]>([]);
   const [currentPath, setCurrentPath] = useState<string>(window.location.hash || '#/');
 
@@ -39,6 +40,19 @@ const App: React.FC = () => {
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    api<{ id: number; email: string; role: UserRole }>('/api/auth/me')
+      .then((me) => {
+        setUser({ email: me.email, role: me.role });
+      })
+      .catch(() => {
+        setUser(null);
+      })
+      .finally(() => {
+        setAuthChecked(true);
+      });
   }, []);
 
   const login = (email: string, role: UserRole) => {
@@ -61,6 +75,18 @@ const App: React.FC = () => {
   };
 
   const renderRoute = () => {
+    if (!authChecked) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-gray-500">
+            <div className="text-xl font-bold tracking-tight text-gray-900">FORS</div>
+            <div className="h-6 w-6 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+            <div className="text-xs uppercase tracking-[0.3em]">loading</div>
+          </div>
+        </div>
+      );
+    }
+
     if (currentPath === '#/login') return <Login />;
     if (currentPath === '#/signup') return <Signup />;
     if (currentPath === '#/' || currentPath === '#/home') return <Home />;

@@ -46,7 +46,11 @@ const DropList: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredDrops.map(drop => (
-          <div key={drop.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden group hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300">
+          <a
+            key={drop.id}
+            href={`#/drops/${drop.id}`}
+            className="block bg-white border border-gray-200 rounded-2xl overflow-hidden group hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 cursor-pointer"
+          >
             <div className="aspect-square bg-gray-50 relative overflow-hidden">
               <img 
                 src={drop.imageUrl} 
@@ -57,6 +61,7 @@ const DropList: React.FC = () => {
                   e.currentTarget.src = FALLBACK_DROP_IMAGE;
                 }}
               />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
               <div className="absolute top-4 left-4">
                 <Badge status={drop.status} />
               </div>
@@ -84,16 +89,9 @@ const DropList: React.FC = () => {
                     <span>종료</span>
                   )}
                 </div>
-                
-                <a 
-                  href={`#/drops/${drop.id}`}
-                  className="bg-black text-white px-5 py-2 text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  상세보기
-                </a>
               </div>
             </div>
-          </div>
+          </a>
         ))}
       </div>
       
