@@ -8,7 +8,8 @@ import { FALLBACK_DROP_IMAGE, formatKRW } from '../constants';
 const Home: React.FC = () => {
   const { addToast } = useApp();
   const [drops, setDrops] = useState<Drop[]>([]);
-  const [tab, setTab] = useState<'today' | 'new'>('today');
+  const [tab, setTab] = useState<'live' | 'scheduled'>('live');
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
     api<Drop[]>('/api/drops')
@@ -16,44 +17,51 @@ const Home: React.FC = () => {
       .catch(() => addToast('드랍을 불러오지 못했어요.', 'error'));
   }, []);
 
-  const todayDrops = useMemo(() => {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth();
-    const d = now.getDate();
-    return drops.filter(drop => {
-      const end = new Date(drop.endsAt);
-      return end.getFullYear() === y && end.getMonth() === m && end.getDate() === d;
-    });
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 30000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const liveDrops = useMemo(() => {
+    return drops.filter(drop => drop.status === 'LIVE');
   }, [drops]);
 
-  const newDrops = useMemo(() => {
-    return [...drops]
-      .sort((a, b) => new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime())
-      .slice(0, 6);
+  const scheduledDrops = useMemo(() => {
+    return drops
+      .filter(drop => drop.status === 'SCHEDULED')
+      .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
   }, [drops]);
 
-  const activeDrops = tab === 'today' ? todayDrops : newDrops;
+  const activeDrops = tab === 'live' ? liveDrops : scheduledDrops;
+  const formatRemaining = (target: string) => {
+    const diffMs = new Date(target).getTime() - now.getTime();
+    if (diffMs <= 0) return '곧 종료';
+    const totalMinutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0) return `${hours}시간 ${minutes}분 남음`;
+    return `${minutes}분 남음`;
+  };
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-center border-b border-gray-200">
         <div className="flex gap-8 text-sm font-semibold text-gray-400">
           <button
-            onClick={() => setTab('today')}
+            onClick={() => setTab('live')}
             className={`pb-4 transition-colors ${
-              tab === 'today' ? 'text-gray-900 border-b-2 border-gray-900' : 'hover:text-gray-900'
+              tab === 'live' ? 'text-gray-900 border-b-2 border-gray-900' : 'hover:text-gray-900'
             }`}
           >
-            오늘 마감
+            진행중
           </button>
           <button
-            onClick={() => setTab('new')}
+            onClick={() => setTab('scheduled')}
             className={`pb-4 transition-colors ${
-              tab === 'new' ? 'text-gray-900 border-b-2 border-gray-900' : 'hover:text-gray-900'
+              tab === 'scheduled' ? 'text-gray-900 border-b-2 border-gray-900' : 'hover:text-gray-900'
             }`}
           >
-            신규 등록
+            예정
           </button>
         </div>
       </div>
@@ -66,7 +74,7 @@ const Home: React.FC = () => {
             weekday: 'short',
           })}
           <span className="text-gray-300 mx-2">|</span>
-          {tab === 'today' ? `오늘 마감 ${todayDrops.length}` : `신규 등록 ${newDrops.length}`}
+          {tab === 'live' ? `진행중 ${liveDrops.length}` : `예정 ${scheduledDrops.length}`}
         </div>
         <div className="flex items-center gap-4 text-xs text-gray-400">
           <button className="flex items-center gap-2 hover:text-gray-700 transition-colors">
@@ -83,15 +91,15 @@ const Home: React.FC = () => {
         {activeDrops.map(drop => (
           <div key={drop.id} className="group">
             <div className="text-xs font-semibold text-red-500 mb-3">
-              {tab === 'today'
+              {tab === 'live'
                 ? `마감 ${new Date(drop.endsAt).toLocaleTimeString('ko-KR', {
                     hour: '2-digit',
                     minute: '2-digit',
-                  })}`
+                  })} · ${formatRemaining(drop.endsAt)}`
                 : `오픈 ${new Date(drop.startsAt).toLocaleTimeString('ko-KR', {
                     hour: '2-digit',
                     minute: '2-digit',
-                  })}`}
+                  })} · ${formatRemaining(drop.startsAt)}`}
             </div>
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
               <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center">
@@ -115,6 +123,7 @@ const Home: React.FC = () => {
                 </div>
                 <div className="mt-4 flex items-center justify-between">
                   <div className="text-sm font-semibold text-gray-900">{formatKRW(drop.price)}</div>
+                  <div className="text-xs font-semibold text-gray-500">남은 {drop.remainingQty}개</div>
                   <a
                     href={`#/drops/${drop.id}`}
                     className="text-xs font-semibold bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors"

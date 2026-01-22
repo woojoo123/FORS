@@ -136,7 +136,12 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
                         disabled={stock.remainingQty <= 0}
                         className={`py-3 text-sm font-bold rounded-xl border transition-all ${selectedSkuId === stock.skuId ? 'bg-black text-white border-black' : 'bg-white text-gray-900 border-gray-200 hover:border-gray-900'} disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        SKU {stock.skuId}
+                        <div className="flex flex-col items-center gap-1 leading-tight">
+                          <span>SKU {stock.skuId}</span>
+                          <span className={`text-[10px] font-medium ${stock.remainingQty > 0 ? 'text-gray-400' : 'text-red-500'}`}>
+                            {stock.remainingQty > 0 ? `잔여 ${stock.remainingQty}개` : '품절'}
+                          </span>
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -164,7 +169,7 @@ const DropDetail: React.FC<{ id: string }> = ({ id }) => {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                   )}
-                  {isSoldOut ? '품절' : !isLive ? '진행중이 아님' : '주문 생성'}
+                  {isSoldOut ? '품절' : !isLive ? '진행중이 아님' : '구매하기'}
                 </button>
 
                 <p className="text-center text-xs text-gray-400">주문 생성 후 5분 내 결제가 필요합니다.</p>
