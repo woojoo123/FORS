@@ -18,7 +18,7 @@ const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 30000);
+    const id = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(id);
   }, []);
 
@@ -35,12 +35,13 @@ const Home: React.FC = () => {
   const activeDrops = tab === 'live' ? liveDrops : scheduledDrops;
   const formatRemaining = (target: string) => {
     const diffMs = new Date(target).getTime() - now.getTime();
-    if (diffMs <= 0) return '곧 종료';
-    const totalMinutes = Math.floor(diffMs / 60000);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    if (hours > 0) return `${hours}시간 ${minutes}분 남음`;
-    return `${minutes}분 남음`;
+    if (diffMs <= 0) return '00:00:00';
+    const totalSeconds = Math.floor(diffMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (value: number) => value.toString().padStart(2, '0');
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   };
 
   return (
@@ -92,15 +93,7 @@ const Home: React.FC = () => {
           <div key={drop.id} className="group">
             <a href={`#/drops/${drop.id}`} className="block cursor-pointer">
               <div className="text-xs font-semibold text-red-500 mb-3">
-                {tab === 'live'
-                  ? `마감 ${new Date(drop.endsAt).toLocaleTimeString('ko-KR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })} · ${formatRemaining(drop.endsAt)}`
-                  : `오픈 ${new Date(drop.startsAt).toLocaleTimeString('ko-KR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })} · ${formatRemaining(drop.startsAt)}`}
+                {formatRemaining(tab === 'live' ? drop.endsAt : drop.startsAt)}
               </div>
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
               <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center relative">
@@ -125,7 +118,7 @@ const Home: React.FC = () => {
                 </div>
                 <div className="mt-4 flex items-center justify-between">
                   <div className="text-sm font-semibold text-gray-900">{formatKRW(drop.price)}</div>
-                  <div className="text-xs font-semibold text-gray-500">남은 {drop.remainingQty}개</div>
+                  <div className="text-xs font-semibold text-gray-500">총 잔여 {drop.remainingQty}개</div>
                 </div>
               </div>
             </div>

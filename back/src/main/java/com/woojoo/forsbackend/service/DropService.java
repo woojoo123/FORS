@@ -1,6 +1,7 @@
 package com.woojoo.forsbackend.service;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class DropService {
 
     public List<DropResponse> list() {
         return dropEventRepository.findAll().stream()
+            .map(this::ensureStatusUpToDate)
             .map(this::toDropResponse)
             .toList();
     }
@@ -34,6 +36,7 @@ public class DropService {
     public DropDetailResponse detail(Long id) {
         DropEventEntity drop = dropEventRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "DROP_NOT_FOUND"));
+        drop = ensureStatusUpToDate(drop);
 
         var stocks = dropStockRepository.findByDropEvent_Id(id).stream()
             .map(s -> new StockResponse(s.getSkuId(), s.getRemainingQty()))
@@ -67,5 +70,19 @@ public class DropService {
             drop.getEndsAt().toString(),
             dropStockRepository.sumRemainingQty(drop.getId())
         );
+    }
+
+    private DropEventEntity ensureStatusUpToDate(DropEventEntity drop) {
+        LocalDateTime now = LocalDateTime.now();
+        if (drop.getStartsAt() != null && now.isAfter(drop.getStartsAt()) && now.isBefore(drop.getEndsAt())
+                && "SCHEDULED".equals(drop.getStatus())) {
+            drop.setStatus("LIVE");
+            return dropEventRepository.save(drop);
+        }
+        if (drop.getEndsAt() != null && now.isAfter(drop.getEndsAt()) && !"ENDED".equals(drop.getStatus())) {
+            drop.setStatus("ENDED");
+            return dropEventRepository.save(drop);
+        }
+        return drop;
     }
 }
